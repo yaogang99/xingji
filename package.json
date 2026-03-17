@@ -24,18 +24,20 @@
     "zustand": "^4.4.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^4.0.0",
-    "autoprefixer": "^10.4.0",
-    "electron": "^28.0.0",
     "@electron-forge/cli": "^7.2.0",
     "@electron-forge/maker-deb": "^7.2.0",
     "@electron-forge/maker-dmg": "^7.2.0",
     "@electron-forge/maker-rpm": "^7.2.0",
     "@electron-forge/maker-squirrel": "^7.2.0",
     "@electron-forge/maker-zip": "^7.2.0",
+    "@playwright/test": "^1.58.2",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.0",
+    "cross-env": "^10.1.0",
+    "electron": "^28.0.0",
+    "electron-builder": "^26.8.1",
     "jsdom": "^24.0.0",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.3.0",
@@ -54,19 +56,29 @@
       "makers": [
         {
           "name": "@electron-forge/maker-zip",
-          "platforms": ["darwin", "linux", "win32"]
+          "platforms": [
+            "darwin",
+            "linux",
+            "win32"
+          ]
         },
         {
           "name": "@electron-forge/maker-dmg",
-          "platforms": ["darwin"]
+          "platforms": [
+            "darwin"
+          ]
         },
         {
           "name": "@electron-forge/maker-squirrel",
-          "platforms": ["win32"]
+          "platforms": [
+            "win32"
+          ]
         },
         {
           "name": "@electron-forge/maker-deb",
-          "platforms": ["linux"]
+          "platforms": [
+            "linux"
+          ]
         }
       ]
     }
