@@ -1,0 +1,48 @@
+stages:
+  - build
+
+variables:
+  NODE_VERSION: "20"
+
+build-macos:
+  stage: build
+  image: node:20
+  script:
+    - npm ci
+    - npm run electron:build
+  artifacts:
+    paths:
+      - out/make/
+    expire_in: 30 days
+  only:
+    - master
+    - main
+
+build-windows:
+  stage: build
+  image: electronuserland/builder:wine
+  script:
+    - npm ci
+    - npm run electron:build -- --platform=win32
+  artifacts:
+    paths:
+      - out/make/
+    expire_in: 30 days
+  only:
+    - master
+    - main
+
+build-linux:
+  stage: build
+  image: node:20
+  script:
+    - apt-get update && apt-get install -y dpkg fakeroot
+    - npm ci
+    - npm run electron:build
+  artifacts:
+    paths:
+      - out/make/
+    expire_in: 30 days
+  only:
+    - master
+    - main

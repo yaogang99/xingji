@@ -1,0 +1,112 @@
+[
+  {
+    "id": "mining_drill",
+    "name": "采矿钻机",
+    "description": "基础采矿设施，产出铁矿",
+    "icon": "⛏️",
+    "buildCost": {
+      "credits": 100
+    },
+    "production": {
+      "resourceId": "iron_ore",
+      "baseAmount": 0.5,
+      "tier": 1
+    },
+    "upgradeCostMultiplier": 1.5,
+    "maxLevel": 10
+  },
+  {
+    "id": "copper_mine",
+    "name": "铜矿开采机",
+    "description": "专门开采铜矿的设施",
+    "icon": "⚒️",
+    "buildCost": {
+      "credits": 150
+    },
+    "production": {
+      "resourceId": "copper_ore",
+      "baseAmount": 0.4,
+      "tier": 1
+    },
+    "upgradeCostMultiplier": 1.5,
+    "maxLevel": 10
+  },
+  {
+    "id": "refinery",
+    "name": "精炼厂",
+    "description": "将原矿精炼成高价值材料",
+    "icon": "🏭",
+    "buildCost": {
+      "credits": 500,
+      "resources": [
+        { "resourceId": "iron_ore", "amount": 20 }
+      ]
+    },
+    "production": {
+      "resourceId": "steel",
+      "baseAmount": 0.1,
+      "tier": 2
+    },
+    "consumption": {
+      "resourceId": "iron_ore",
+      "amount": 0.3
+    },
+    "upgradeCostMultiplier": 2.0,
+    "maxLevel": 10
+  },
+  {
+    "id": "research_lab",
+    "name": "研究实验室",
+    "description": "产出研究点",
+    "icon": "🔬",
+    "buildCost": {
+      "credits": 1000,
+      "researchPoints": 50
+    },
+    "production": {
+      "resourceId": "research_points_virtual",
+      "baseAmount": 0.05,
+      "tier": 3
+    },
+    "upgradeCostMultiplier": 2.5,
+    "maxLevel": 5
+  },
+  {
+    "id": "crystal_extractor",
+    "name": "晶体提取器",
+    "description": "提取能量晶体",
+    "icon": "💎",
+    "buildCost": {
+      "credits": 800,
+      "resources": [
+        { "resourceId": "copper_ore", "amount": 30 }
+      ]
+    },
+    "production": {
+      "resourceId": "energy_crystal",
+      "baseAmount": 0.08,
+      "tier": 2
+    },
+    "upgradeCostMultiplier": 2.0,
+    "maxLevel": 8
+  },
+  {
+    "id": "rare_mine",
+    "name": "稀有矿脉钻机",
+    "description": "开采稀有金属",
+    "icon": "🔨",
+    "buildCost": {
+      "credits": 2000,
+      "resources": [
+        { "resourceId": "steel", "amount": 10 }
+      ]
+    },
+    "production": {
+      "resourceId": "rare_metal",
+      "baseAmount": 0.03,
+      "tier": 3
+    },
+    "upgradeCostMultiplier": 2.5,
+    "maxLevel": 5
+  }
+]

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>星际贸易站 - Star Trade Station</title>
+  <meta name="description" content="星际贸易站 - 放置经营游戏，探索宇宙，建立贸易帝国">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0f;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    }
+    
+    #root {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 加载动画 */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    
+    #loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .loading-icon {
+      font-size: 80px;
+      animation: pulse 2s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+    
+    .loading-text {
+      color: #00CED1;
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(0, 206, 209, 0.5);
+    }
+    
+    .loading-subtext {
+      color: #707070;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    
+    .loading-progress {
+      width: 200px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 30px;
+      overflow: hidden;
+    }
+    
+    .loading-progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #00CED1, #FFD700);
+      transition: width 0.3s ease;
+    }
+    
+    /* 错误提示 */
+    #error {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0a0a0f;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      padding: 20px;
+    }
+    
+    #error.visible {
+      display: flex;
+    }
+    
+    .error-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+    
+    .error-title {
+      color: #FF6B6B;
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .error-message {
+      color: #707070;
+      font-size: 14px;
+      text-align: center;
+      max-width: 300px;
+      line-height: 1.6;
+    }
+    
+    /* 测试模式指示器 */
+    #test-mode {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 215, 0, 0.2);
+      border: 1px solid #FFD700;
+      color: #FFD700;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 1000;
+      display: none;
+    }
+    
+    #test-mode.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- 加载界面 -->
+  <div id="loading">
+    <div class="loading-icon">🚀</div>
+    <div class="loading-text">星际贸易站</div>
+    <div class="loading-subtext">正在初始化宇宙...</div>
+    <div class="loading-progress">
+      <div class="loading-progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+  
+  <!-- 错误界面 -->
+  <div id="error">
+    <div class="error-icon">⚠️</div>
+    <div class="error-title">启动失败</div>
+    <div class="error-message" id="error-message">游戏加载出现问题，请刷新页面重试。</div>
+  </div>
+  
+  <!-- 测试模式指示器 -->
+  <div id="test-mode">🧪 航天级测试模式</div>
+  
+  <!-- React应用挂载点 -->
+  <div id="root"></div>
+  
+  <!-- 应用脚本 -->
+  <script type="module" src="/src/main.tsx"></script>
+  
+  <!-- 加载控制 -->
+  <script>
+    // 加载进度模拟
+    let progress = 0;
+    const progressBar = document.getElementById('progress-bar');
+    const loading = document.getElementById('loading');
+    let loadComplete = false;
+    
+    const loadingInterval = setInterval(() => {
+      progress += Math.random() * 10;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(loadingInterval);
+        loadComplete = true;
+        // 等待React应用渲染完成
+        setTimeout(() => {
+          const root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            loading.classList.add('hidden');
+          } else {
+            // 如果React没有渲染，继续显示加载
+            console.log('等待应用渲染...');
+            setTimeout(() => {
+              loading.classList.add('hidden');
+            }, 2000);
+          }
+        }, 500);
+      }
+      progressBar.style.width = progress + '%';
+    }, 100);
+    
+    // 错误处理
+    window.onerror = function(msg, url, line, col, error) {
+      console.error('Error:', msg, 'at', url, 'line', line);
+      const errorDiv = document.getElementById('error');
+      const errorMessage = document.getElementById('error-message');
+      errorMessage.textContent = '错误: ' + msg + ' (行:' + line + ')';
+      errorDiv.classList.add('visible');
+      loading.classList.add('hidden');
+      return false;
+    };
+    
+    // 未捕获的Promise错误
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('Unhandled Promise Rejection:', e.reason);
+      window.onerror('Promise Error: ' + e.reason, '', 0);
+    });
+    
+    // 测试模式检测
+    if (window.location.search.includes('test=true') || window.location.hash.includes('test')) {
+      document.getElementById('test-mode').classList.add('visible');
+      window.GAME_TEST_MODE = true;
+    }
+    
+    // PWA支持
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {
+        // 静默失败，不影响游戏运行
+      });
+    }
+    
+    // 防止双击缩放
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
+  </script>
+</body>
+</html>
