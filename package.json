@@ -6,7 +6,7 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && npm run fix-paths",
+    "build": "tsc && vite build && node scripts/fix-electron-html.cjs",
     "fix-paths": "sed -i '' 's|src=\"/assets/|src=\"./assets/|g; s|href=\"/assets/|href=\"./assets/|g' dist/index.html",
     "preview": "vite preview",
     "test": "vitest",

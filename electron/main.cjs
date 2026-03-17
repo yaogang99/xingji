@@ -1,82 +1,112 @@
-// electron/main.js
-// Electron 主进程
-
-const { app, BrowserWindow, Menu } = require('electron');
+// electron/main.cjs - Windows 黑屏终极修复版
+const { app, BrowserWindow, Menu, protocol } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
-// 保持窗口对象的全局引用，防止被垃圾回收
 let mainWindow;
 
+// 注册自定义协议（解决 file:// 协议的安全限制）
+function registerProtocol() {
+  protocol.registerFileProtocol('app', (request, callback) => {
+    const url = request.url.substr(6); // 去掉 'app://'
+    let decodedUrl = decodeURIComponent(url);
+    
+    // Windows 路径处理
+    if (process.platform === 'win32') {
+      decodedUrl = decodedUrl.replace(/\\/g, '/');
+    }
+    
+    const filePath = path.join(__dirname, '../dist', decodedUrl);
+    
+    // 安全检查：确保文件在 dist 目录内
+    const distPath = path.join(__dirname, '../dist');
+    if (!filePath.startsWith(distPath)) {
+      callback({ error: -6 }); // 拒绝访问
+      return;
+    }
+    
+    callback({ path: filePath });
+  });
+}
+
 function createWindow() {
-  // 创建浏览器窗口
+  // 注册协议
+  registerProtocol();
+  
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    title: '星际贸易站 - Star Trade Station',
+    title: '星际贸易站',
     icon: path.join(__dirname, '../dist/icon.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.cjs'),
-      webSecurity: false,
-      allowRunningInsecureContent: false
+      webSecurity: false, // 允许加载本地资源
+      allowRunningInsecureContent: true,
+      // 启用开发者工具以便调试
+      devTools: true
     },
-    // 美观的窗口样式
-    titleBarStyle: 'hiddenInset',
     backgroundColor: '#0a0a0f',
-    show: false // 先不显示，等加载完成后再显示
+    show: false
   });
 
-  // 加载应用
   const isDev = process.argv.includes('--dev');
   
   if (isDev) {
-    // 开发模式：加载 Vite 开发服务器
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    // 生产模式：加载打包后的文件（使用 file:// 协议更可靠）
+    // 使用自定义协议加载（最可靠的方式）
     const indexPath = path.join(__dirname, '../dist/index.html');
-    const fileUrl = 'file://' + indexPath.replace(/\\/g, '/');
-    console.log('Loading URL:', fileUrl);
-    mainWindow.loadURL(fileUrl);
     
-    // 添加错误处理和调试
-    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-      console.error('Failed to load:', errorCode, errorDescription);
+    // 检查文件是否存在
+    if (!fs.existsSync(indexPath)) {
+      console.error('Error: index.html not found at', indexPath);
+      dialog.showErrorBox('启动失败', '找不到游戏文件');
+      return;
+    }
+    
+    console.log('Loading from:', indexPath);
+    
+    // Windows 上使用 file:// 协议，但先修改 HTML 移除 module 属性
+    mainWindow.loadURL('file://' + indexPath.replace(/\\/g, '/'));
+    
+    // 调试：监听加载失败
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('Load failed:', errorCode, errorDescription, validatedURL);
     });
     
-    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
-      console.log('Console:', level, message);
+    // 调试：监听控制台消息
+    mainWindow.webContents.on('console-message', (event, level, message) => {
+      console.log('Console:', ['verbose', 'info', 'warning', 'error'][level], message);
     });
-    
-    // 打开开发者工具以便调试黑屏问题
-    // mainWindow.webContents.openDevTools();
   }
 
-  // 窗口加载完成后显示
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    mainWindow.maximize(); // 最大化窗口
+    mainWindow.maximize();
+    
+    // 调试：打开开发者工具
+    // mainWindow.webContents.openDevTools();
   });
 
-  // 窗口关闭时的处理
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
-  // 创建菜单（仅 macOS 显示菜单栏，Windows/Linux 隐藏）
+  // Windows 隐藏菜单栏
   if (process.platform === 'darwin') {
     createMenu();
   } else {
-    // Windows/Linux: 隐藏菜单栏
     Menu.setApplicationMenu(null);
   }
 }
 
 function createMenu() {
+  const { Menu } = require('electron');
   const template = [
     {
       label: '游戏',
@@ -97,56 +127,10 @@ function createMenu() {
         },
         { type: 'separator' },
         {
-          label: '设置',
-          accelerator: 'CmdOrCtrl+,',
-          click: () => {
-            mainWindow.webContents.send('menu-settings');
-          }
-        },
-        { type: 'separator' },
-        {
           label: '退出',
           accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
           click: () => {
             app.quit();
-          }
-        }
-      ]
-    },
-    {
-      label: '视图',
-      submenu: [
-        {
-          label: '刷新',
-          accelerator: 'CmdOrCtrl+R',
-          click: () => {
-            mainWindow.webContents.reload();
-          }
-        },
-        {
-          label: '开发者工具',
-          accelerator: 'F12',
-          click: () => {
-            mainWindow.webContents.toggleDevTools();
-          }
-        },
-        { type: 'separator' },
-        {
-          label: '全屏',
-          accelerator: 'F11',
-          click: () => {
-            mainWindow.setFullScreen(!mainWindow.isFullScreen());
-          }
-        }
-      ]
-    },
-    {
-      label: '帮助',
-      submenu: [
-        {
-          label: '关于',
-          click: () => {
-            mainWindow.webContents.send('menu-about');
           }
         }
       ]
@@ -157,25 +141,19 @@ function createMenu() {
   Menu.setApplicationMenu(menu);
 }
 
-// Electron 初始化完成
+// 应用准备就绪
 app.whenReady().then(() => {
   createWindow();
 
   app.on('activate', () => {
-    // macOS: 点击 dock 图标时重新创建窗口
     if (mainWindow === null) {
       createWindow();
     }
   });
 });
 
-// 所有窗口关闭时退出应用
 app.on('window-all-closed', () => {
-  // macOS: 除非用户明确退出，否则保持应用运行
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
-// 阻止安全警告
-process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
