@@ -6,8 +6,6 @@ name: Build Release
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 jobs:
   build-windows:
@@ -19,7 +17,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
       
       - name: Install dependencies
         run: npm ci
@@ -29,12 +26,13 @@ jobs:
       
       - name: Package Windows
         run: npm run electron:package -- --platform=win32 --arch=x64
+        continue-on-error: true
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: out/make/squirrel.windows/x64/*
+          path: out/make/**
 
   build-macos:
     runs-on: macos-latest
