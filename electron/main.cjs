@@ -52,8 +52,13 @@ function createWindow() {
     mainWindow = null;
   });
 
-  // 创建菜单
-  createMenu();
+  // 创建菜单（仅 macOS 显示菜单栏，Windows/Linux 隐藏）
+  if (process.platform === 'darwin') {
+    createMenu();
+  } else {
+    // Windows/Linux: 隐藏菜单栏
+    Menu.setApplicationMenu(null);
+  }
 }
 
 function createMenu() {
