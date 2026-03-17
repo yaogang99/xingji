@@ -1,101 +1,41 @@
-# .gitee-ci.yml - Gitee CI 配置
-# 打包 Windows、macOS、Linux 桌面应用
+# Gitee Go 流水线配置
+# 打包 Windows 桌面应用
+
+image: electronuserland/builder:wine
 
 stages:
   - install
   - build
   - package
 
-variables:
-  NODE_VERSION: "18"
-  ELECTRON_CACHE: "$CI_PROJECT_DIR/.cache/electron"
-  ELECTRON_BUILDER_CACHE: "$CI_PROJECT_DIR/.cache/electron-builder"
-
 # 安装依赖
 install:
   stage: install
-  image: node:$NODE_VERSION
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - node_modules/
-      - .cache/
   script:
-    - npm ci
-  artifacts:
+    - npm ci --registry=https://registry.npmmirror.com
+  cache:
+    key: node_modules_${CI_COMMIT_SHA}
     paths:
       - node_modules/
-    expire_in: 1 hour
 
-# 构建应用
+# 构建
 build:
   stage: build
-  image: node:$NODE_VERSION
-  dependencies:
-    - install
   script:
     - npm run build
   artifacts:
+    name: build_${CI_COMMIT_SHA}
     paths:
       - dist/
-    expire_in: 1 hour
+      - node_modules/
 
-# 打包 Windows (使用 electron-builder)
+# 打包 Windows
 package-windows:
   stage: package
-  image: electronuserland/builder:wine
-  dependencies:
-    - install
-    - build
   script:
-    - npm run electron:package -- --win
+    - npm run electron:package -- --platform=win32 --arch=x64
   artifacts:
-    name: "star-trade-station-windows-${CI_COMMIT_SHORT_SHA}"
+    name: star-trade-station-windows-${CI_COMMIT_SHORT_SHA}
     paths:
-      - out/make/*.exe
-      - out/make/*.zip
+      - out/make/
     expire_in: 30 days
-  only:
-    - main
-    - master
-
-# 打包 Linux
-package-linux:
-  stage: package
-  image: electronuserland/builder
-  dependencies:
-    - install
-    - build
-  script:
-    - npm run electron:package -- --linux
-  artifacts:
-    name: "star-trade-station-linux-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - out/make/*.deb
-      - out/make/*.rpm
-      - out/make/*.AppImage
-    expire_in: 30 days
-  only:
-    - main
-    - master
-
-# 打包 macOS (需要 macOS runner)
-package-macos:
-  stage: package
-  tags:
-    - macos
-  dependencies:
-    - install
-    - build
-  script:
-    - npm run electron:package -- --mac
-  artifacts:
-    name: "star-trade-station-macos-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - out/make/*.dmg
-      - out/make/*.zip
-    expire_in: 30 days
-  only:
-    - main
-    - master
-  allow_failure: true
