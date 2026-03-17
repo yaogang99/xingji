@@ -1,0 +1,68 @@
+appId: com.startrade.station
+productName: 星际贸易站
+copyright: Copyright © 2026
+
+# 打包配置
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+
+# 排除文件  
+extraResources:
+  - from: assets/
+    to: assets/
+    filter:
+      - "**/*"
+
+# Windows 配置
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - ia32
+  icon: assets/icon.ico
+  
+# NSIS 安装程序配置
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 星际贸易站
+
+# macOS 配置
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: assets/icon.icns
+  category: public.app-category.games
+
+# Linux 配置  
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: assets/icon.png
+  category: Game
+
+# asar 配置
+asar: true
+asarUnpack:
+  - "**/assets/**/*"
+
+# 发布配置（暂不使用）
+publish: null
+
+#  electron-builder  electron-builder
+
+directories:
+  output: dist_electron
+  buildResources: assets

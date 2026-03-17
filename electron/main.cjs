@@ -1,5 +1,5 @@
 // electron/main.cjs - Windows 黑屏终极修复版
-const { app, BrowserWindow, Menu, protocol } = require('electron');
+const { app, BrowserWindow, Menu, protocol, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
