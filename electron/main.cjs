@@ -37,8 +37,23 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    // 生产模式：加载打包后的文件
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    // 生产模式：加载打包后的文件（使用 file:// 协议更可靠）
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    const fileUrl = 'file://' + indexPath.replace(/\\/g, '/');
+    console.log('Loading URL:', fileUrl);
+    mainWindow.loadURL(fileUrl);
+    
+    // 添加错误处理和调试
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+      console.error('Failed to load:', errorCode, errorDescription);
+    });
+    
+    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      console.log('Console:', level, message);
+    });
+    
+    // 打开开发者工具以便调试黑屏问题
+    // mainWindow.webContents.openDevTools();
   }
 
   // 窗口加载完成后显示
