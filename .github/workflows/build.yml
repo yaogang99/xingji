@@ -1,0 +1,31 @@
+name: Build Release
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build app
+        run: npm run build
+      
+      - name: Package Windows
+        run: npm run electron:package -- --platform=win32 --arch=x64
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: out/make/**
