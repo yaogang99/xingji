@@ -83,6 +83,7 @@ interface SettingsPanelProps {
   onClose: () => void
   onExportSave?: () => string | null
   onImportSave?: (data: string) => boolean
+  onExitToMenu?: () => void
 }
 
 export function SettingsPanel({ 
@@ -91,6 +92,7 @@ export function SettingsPanel({
   onClose,
   onExportSave,
   onImportSave,
+  onExitToMenu,
 }: SettingsPanelProps) {
   const [activeTab, setActiveTab] = useState<'audio' | 'display' | 'gameplay' | 'accessibility' | 'other'>('audio')
   const [localSettings, setLocalSettings] = useState<SettingsData>(settings)
@@ -403,6 +405,15 @@ export function SettingsPanel({
           )}
         </div>
       </div>
+
+      {onExitToMenu && (
+        <div className="setting-item exit-action">
+          <h4>游戏操作</h4>
+          <button className="action-btn warning" onClick={onExitToMenu}>
+            🚪 退出到主菜单（自动保存）
+          </button>
+        </div>
+      )}
 
       <div className="setting-item reset-action">
         <h4>危险操作</h4>

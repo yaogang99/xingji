@@ -10,8 +10,8 @@ let mainWindow;
 function createWindow() {
   // 创建浏览器窗口
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
+    width: 1400,
+    height: 900,
     minWidth: 800,
     minHeight: 600,
     title: '星际贸易站 - Star Trade Station',
@@ -19,7 +19,9 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.cjs'),
+      webSecurity: false,
+      allowRunningInsecureContent: false
     },
     // 美观的窗口样式
     titleBarStyle: 'hiddenInset',
@@ -42,9 +44,7 @@ function createWindow() {
   // 窗口加载完成后显示
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    
-    // 可选：全屏启动
-    // mainWindow.maximize();
+    mainWindow.maximize(); // 最大化窗口
   });
 
   // 窗口关闭时的处理

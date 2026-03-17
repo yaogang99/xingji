@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import './App.css'
 import { MarketSystem } from './core/MarketSystem'
 import { OfflineEarnings } from './core/OfflineEarnings'
@@ -105,16 +105,35 @@ function App() {
     return () => clearInterval(interval)
   }, [gameStarted])
 
-  // 自动保存 (每30秒)
+  // 自动保存 (每30秒) - 使用 ref 避免依赖项变化导致定时器重置
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
+  
   useEffect(() => {
-    if (!gameStarted || !currentSlotIndex) return
+    if (!gameStarted || !currentSlotIndex) {
+      if (saveTimerRef.current) {
+        clearInterval(saveTimerRef.current)
+        saveTimerRef.current = null
+      }
+      return
+    }
     
-    const interval = setInterval(() => {
+    // 清除旧定时器
+    if (saveTimerRef.current) {
+      clearInterval(saveTimerRef.current)
+    }
+    
+    // 创建新定时器
+    saveTimerRef.current = setInterval(() => {
+      console.log('🔄 自动保存触发...')
       saveToSlot(currentSlotIndex)
     }, 30000)
     
-    return () => clearInterval(interval)
-  }, [gameStarted, currentSlotIndex, credits, researchPoints, resources, playTime])
+    return () => {
+      if (saveTimerRef.current) {
+        clearInterval(saveTimerRef.current)
+      }
+    }
+  }, [gameStarted, currentSlotIndex])  // 只依赖这两个，避免数据变化重置定时器
 
   // 游戏循环 - 设施产出
   useEffect(() => {
@@ -478,22 +497,86 @@ function App() {
     }
   }, [planetSystemExt, techSystem, expeditionSystem, achievementManager, facilitySystem, audioManager])
 
-  // 新游戏 - 直接开始，不选择档位
+  // 退出到主菜单
+  const exitToMenu = useCallback(() => {
+    // 先保存当前游戏
+    if (currentSlotIndex) {
+      // 直接调用保存，不使用 saveToSlot 避免闭包问题
+      const slotName = SaveSystem.getAllSlots().find(s => s.index === currentSlotIndex)?.name || `存档 ${currentSlotIndex}`
+      
+      const saveData = {
+        credits,
+        researchPoints,
+        resources: resources.map(r => ({ id: r.id, amount: r.amount })),
+        unlockedPlanets: planetSystemExt.getAllExtendedPlanets().filter(p => p.unlocked).map(p => p.id),
+        researchedTechs: techSystem.getResearchedTechs().map(t => t.id),
+        unlockedShips: expeditionSystem.getUnlockedShips().map(s => s.id),
+        achievements: achievementManager.getAllAchievements().filter(a => a.unlocked).map(a => a.id),
+        planetData: planetSystemExt.exportData(),
+        facilities: facilitySystem.exportData(),
+        settings: {
+          masterVolume: 1,
+          bgmVolume: 0.5,
+          sfxVolume: 1
+        }
+      }
+      
+      SaveSystem.save(currentSlotIndex, slotName, saveData, playTime)
+      console.log(`✅ 退出前已保存到档位 ${currentSlotIndex}`)
+    }
+    
+    setGameStarted(false)
+    setView('menu')
+    
+    // 刷新存档列表
+    const slots = SaveSystem.getAllSlots()
+    setHasAnySave(slots.some(s => s.exists))
+    
+    audioManager.playSfx('back')
+  }, [currentSlotIndex, credits, researchPoints, resources, planetSystemExt, techSystem, expeditionSystem, achievementManager, facilitySystem, playTime, audioManager])
   const startNewGame = useCallback(() => {
     setCredits(1000)
     setResearchPoints(0)
     setResources(INITIAL_RESOURCES)
     setPlayTime(0)
-    setCurrentSlotIndex(null)
     
     // 创建默认设施
     const defaultFacility = facilitySystem.createFacility('mining_drill', 'earth', 1)
     setFacilities([defaultFacility])
     
+    // 自动分配到第一个空槽位
+    const slots = SaveSystem.getAllSlots()
+    const emptySlot = slots.find(s => !s.exists)
+    const slotIndex = emptySlot ? emptySlot.index : 1
+    
+    setCurrentSlotIndex(slotIndex)
     setGameStarted(true)
     setView('main')
+    
+    // 延迟保存初始存档
+    setTimeout(() => {
+      const saveData = {
+        credits: 1000,
+        researchPoints: 0,
+        resources: INITIAL_RESOURCES.map(r => ({ id: r.id, amount: r.amount })),
+        unlockedPlanets: [],
+        researchedTechs: [],
+        unlockedShips: [],
+        achievements: [],
+        planetData: planetSystemExt.exportData(),
+        facilities: facilitySystem.exportData(),
+        settings: {
+          masterVolume: 1,
+          bgmVolume: 0.5,
+          sfxVolume: 1
+        }
+      }
+      SaveSystem.save(slotIndex, `存档 ${slotIndex}`, saveData, 0)
+      console.log(`✅ 新游戏自动保存到档位 ${slotIndex}`)
+    }, 1000)
+    
     audioManager.playSfx('success')
-  }, [audioManager, facilitySystem])
+  }, [audioManager, facilitySystem, planetSystemExt])
 
   const renderMainView = () => (
     <div className="main-layout">
@@ -693,6 +776,7 @@ function App() {
             settings={settings}
             onSettingsChange={handleSettingsChange}
             onClose={() => gameStarted ? setView('main') : setView('menu')}
+            onExitToMenu={gameStarted ? exitToMenu : undefined}
             onExportSave={() => {
               if (currentSlotIndex !== null) {
                 return SaveSystem.export(currentSlotIndex) || ''

@@ -33,9 +33,11 @@ export function PlanetPanel(props: PlanetPanelProps) {
 
 function PlanetList({ planets, credits, onUnlockPlanet, onSelect, onBack }: any) {
   return (
-    <div className="planet-panel">
-      <div className="panel-header"><BackButton onClick={onBack} /><h2>🪐 行星管理</h2></div>
-      <div className="planet-list">
+    <div className="main-layout">
+      {/* 左侧 - 行星列表 */}
+      <div className="left-panel">
+        <div className="panel-header"><BackButton onClick={onBack} /><h2>🪐 行星管理</h2></div>
+        <div className="planet-list">
         {planets.map((planet: ExtendedPlanet) => (
           <div key={planet.id} className={`planet-card ${planet.unlocked ? 'unlocked' : 'locked'}`}>
             <div className="planet-header">
@@ -57,44 +59,116 @@ function PlanetList({ planets, credits, onUnlockPlanet, onSelect, onBack }: any)
           </div>
         ))}
       </div>
+      </div>
+      
+      {/* 右侧 - 快速统计 */}
+      <div className="right-panel">
+        <section className="stats-section">
+          <h2>📊 行星概览</h2>
+          <div className="stats-grid">
+            <div className="stat-item">
+              <span className="stat-label">已解锁行星</span>
+              <span className="stat-value">{planets.filter((p: ExtendedPlanet) => p.unlocked).length}/{planets.length}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">殖民地数量</span>
+              <span className="stat-value">{planets.filter((p: ExtendedPlanet) => p.colony).length}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">总税收收入</span>
+              <span className="stat-value">💰{planets.reduce((sum: number, p: ExtendedPlanet) => sum + (p.colony?.taxIncome || 0), 0)}/s</span>
+            </div>
+          </div>
+        </section>
+        
+        <section className="nav-section">
+          <h2>💡 提示</h2>
+          <div className="planet-tips" style={{ padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', fontSize: '14px', color: '#B0B0B0', lineHeight: '1.6' }}>
+            <p>• 解锁更多行星获得更多资源</p>
+            <p>• 升级殖民地增加税收</p>
+            <p>• 建造设施自动化生产</p>
+            <p>• 利用行星加成提高效率</p>
+          </div>
+        </section>
+      </div>
     </div>
   )
 }
 
 function PlanetDetail({ planet, ...props }: any) {
   return (
-    <div className="planet-panel planet-detail">
-      <div className="panel-header">
-        <button className="back-btn" onClick={props.onBackToList}>←</button>
-        <h2>{getPlanetIcon(planet.type)} {planet.name}</h2>
-      </div>
-
-      <section className="planet-info-section">
-        <p><strong>类型:</strong> {getPlanetTypeName(planet.type)}</p>
-        <p><strong>距离:</strong> {planet.distance} AU</p>
-        {planet.bonuses.length > 0 && <p><strong>加成:</strong> {planet.bonuses.map((b: any) => `${b.type}${b.resourceId ? '[' + b.resourceId + ']' : ''} ${Math.round((b.multiplier - 1) * 100)}%`).join(', ')}</p>}
-      </section>
-
-      {planet.colony && (
-        <section className="colony-section">
-          <h3>🏘️ 殖民地 (等级 {planet.colony.level})</h3>
-          <div className="colony-stats">
-            <span>人口: {planet.colony.population.toLocaleString()}</span>
-            <span>幸福度: {planet.colony.happiness}%</span>
-            <span>税收: +{planet.colony.taxIncome}💰/秒</span>
-          </div>
-          {planet.colony.level < 5 && <button className="upgrade-btn" onClick={() => props.onUpgradeColony(planet.id)}>升级殖民地</button>}
-        </section>
-      )}
-
-      <section className="facilities-section">
-        <h3>🏭 设施 ({planet.facilitySlots.filter((s: any) => s.facility).length}/{planet.maxFacilities})</h3>
-        <div className="facility-slots">
-          {planet.facilitySlots.map((slot: any, index: number) => (
-            <FacilitySlot key={slot.id} slot={slot} index={index} planet={planet} {...props} />
-          ))}
+    <div className="main-layout">
+      {/* 左侧 - 行星详情 */}
+      <div className="left-panel">
+        <div className="panel-header">
+          <button className="back-btn" onClick={props.onBackToList}>←</button>
+          <h2>{getPlanetIcon(planet.type)} {planet.name}</h2>
         </div>
-      </section>
+
+        <section className="planet-info-section">
+          <p><strong>类型:</strong> {getPlanetTypeName(planet.type)}</p>
+          <p><strong>距离:</strong> {planet.distance} AU</p>
+          {planet.bonuses.length > 0 && <p><strong>加成:</strong> {planet.bonuses.map((b: any) => `${b.type}${b.resourceId ? '[' + b.resourceId + ']' : ''} ${Math.round((b.multiplier - 1) * 100)}%`).join(', ')}</p>}
+        </section>
+
+        {planet.colony && (
+          <section className="colony-section">
+            <h3>🏘️ 殖民地 (等级 {planet.colony.level})</h3>
+            <div className="colony-stats">
+              <span>人口: {planet.colony.population.toLocaleString()}</span>
+              <span>幸福度: {planet.colony.happiness}%</span>
+              <span>税收: +{planet.colony.taxIncome}💰/秒</span>
+            </div>
+            {planet.colony.level < 5 && <button className="upgrade-btn" onClick={() => props.onUpgradeColony(planet.id)}>升级殖民地</button>}
+          </section>
+        )}
+
+        <section className="facilities-section">
+          <h3>🏭 设施 ({planet.facilitySlots.filter((s: any) => s.facility).length}/{planet.maxFacilities})</h3>
+          <div className="facility-slots">
+            {planet.facilitySlots.map((slot: any, index: number) => (
+              <FacilitySlot key={slot.id} slot={slot} index={index} planet={planet} {...props} />
+            ))}
+          </div>
+        </section>
+      </div>
+      
+      {/* 右侧 - 快捷信息 */}
+      <div className="right-panel">
+        <section className="stats-section">
+          <h2>📊 行星状态</h2>
+          <div className="stats-grid">
+            <div className="stat-item">
+              <span className="stat-label">殖民地等级</span>
+              <span className="stat-value">Lv.{planet.colony?.level || 0}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">当前人口</span>
+              <span className="stat-value">{(planet.colony?.population || 0).toLocaleString()}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">税收收入</span>
+              <span className="stat-value">💰{planet.colony?.taxIncome || 0}/s</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">设施槽位</span>
+              <span className="stat-value">{planet.facilitySlots.filter((s: any) => s.facility).length}/{planet.maxFacilities}</span>
+            </div>
+          </div>
+        </section>
+        
+        <section className="nav-section">
+          <h2>🪐 资源产出</h2>
+          <div style={{ padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+            {planet.resources.map((r: any) => (
+              <div key={r.resourceId} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <span style={{ color: '#B0B0B0' }}>{r.resourceId}</span>
+                <span style={{ color: '#00CED1' }}>+{r.productionRate}/s</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   )
 }

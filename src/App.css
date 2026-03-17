@@ -420,3 +420,18 @@ html, body {
   max-width: 90vw;
   z-index: 9999;
 }
+
+/* ========================================
+   设置页面按钮样式
+   ======================================== */
+
+.action-btn.warning {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: #FFC107;
+  color: #FFC107;
+}
+
+.action-btn.warning:hover {
+  background: #FFC107;
+  color: #000;
+}
