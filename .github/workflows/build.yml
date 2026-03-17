@@ -10,28 +10,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
       
-      - name: Install dependencies
-        shell: cmd
-        run: |
-          call npm ci
+      - run: npm ci
       
-      - name: Build app
-        shell: cmd
-        run: |
-          call npm run build
+      - run: npm run build
       
-      - name: Package Windows
-        shell: powershell
-        run: |
-          npx electron-forge package --platform=win32 --arch=x64
+      - run: npx electron-builder --win portable
       
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: out/**/*
+          path: dist/*.exe
