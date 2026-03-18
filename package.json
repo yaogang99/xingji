@@ -110,8 +110,6 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "星际贸易站",
-      "compression": "lzma2",
-      "solid": true,
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "asar": true
