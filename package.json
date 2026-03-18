@@ -82,5 +82,38 @@
         }
       ]
     }
+  },
+  "build": {
+    "appId": "com.startrade.station",
+    "productName": "星际贸易站",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "星际贸易站",
+      "compression": "lzma2",
+      "solid": true,
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "asar": true
   }
 }
