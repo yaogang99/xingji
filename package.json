@@ -88,7 +88,7 @@
     "productName": "星际贸易站",
     "copyright": "Copyright © 2026",
     "directories": {
-      "output": "dist",
+      "output": "dist_electron",
       "buildResources": "build"
     },
     "files": [
